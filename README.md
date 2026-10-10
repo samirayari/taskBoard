@@ -1,40 +1,40 @@
 # TaskBoard
 
-TaskBoard est une petite API de gestion de tâches écrite en Python avec FastAPI.
+TaskBoard is a small task management API written in Python with FastAPI.
 
-C'est le **projet fil rouge** de la semaine de formation DevOps (M1 informatique). Cette version 1.0.0 est le point de départ : l'API fonctionne, elle est testée et documentée. Pendant les ateliers, vous la ferez évoluer avec Git, les tests automatisés, Docker et un pipeline d'intégration continue.
+It is the **common thread project** of the DevOps training week (first-year Master's in computer science). This version 1.0.0 is the starting point: the API works, is tested and is documented. During the workshops, you will make it evolve with Git, automated tests, Docker and a continuous integration pipeline.
 
-Le projet est volontairement simple :
+The project is intentionally simple:
 
-- pas de base de données : les tâches sont gardées **en mémoire** ;
-- pas d'interface graphique : on utilise la documentation interactive de l'API et `curl` ;
-- peu de fichiers, faciles à lire.
+- no database: tasks are kept **in memory**;
+- no graphical interface: you use the interactive API documentation and `curl`;
+- few files, easy to read.
 
-## Sommaire
+## Contents
 
-1. [Prérequis](#1-prérequis)
-2. [Créer et activer un environnement virtuel](#2-créer-et-activer-un-environnement-virtuel)
-3. [Installer les dépendances](#3-installer-les-dépendances)
-4. [Lancer l'application](#4-lancer-lapplication)
-5. [Documentation interactive](#5-documentation-interactive)
-6. [Exemples de requêtes](#6-exemples-de-requêtes)
-7. [Lancer les tests](#7-lancer-les-tests)
-8. [Variables d'environnement](#8-variables-denvironnement)
-9. [Structure du projet](#9-structure-du-projet)
-10. [Problèmes fréquents](#10-problèmes-fréquents)
+1. [Prerequisites](#1-prerequisites)
+2. [Create and activate a virtual environment](#2-create-and-activate-a-virtual-environment)
+3. [Install the dependencies](#3-install-the-dependencies)
+4. [Run the application](#4-run-the-application)
+5. [Interactive documentation](#5-interactive-documentation)
+6. [Request examples](#6-request-examples)
+7. [Run the tests](#7-run-the-tests)
+8. [Environment variables](#8-environment-variables)
+9. [Project structure](#9-project-structure)
+10. [Troubleshooting](#10-troubleshooting)
 
-## 1. Prérequis
+## 1. Prerequisites
 
-- **Python 3.12** ; vérifiez avec `python3.12 --version` (macOS/Linux) ou `py -3.12 --version` (Windows) ;
-- **pip** (fourni avec Python) ;
-- **curl** (déjà présent sous macOS, Linux et Windows 10/11) ;
-- **Git**, pour récupérer le projet et pour les ateliers.
+- **Python 3.12**: check with `python3.12 --version` (macOS/Linux) or `py -3.12 --version` (Windows);
+- **pip** (shipped with Python);
+- **curl** (already available on macOS, Linux and Windows 10/11);
+- **Git**, to get the project and for the workshops.
 
-Toutes les commandes ci-dessous se lancent **depuis le dossier `taskboard`**, celui qui contient ce README.
+All the commands below must be run **from the project root folder** (`taskBoard` after `git clone`), the one that contains this README.
 
-## 2. Créer et activer un environnement virtuel
+## 2. Create and activate a virtual environment
 
-Un environnement virtuel (`.venv`) isole les dépendances du projet de celles du système.
+A virtual environment (`.venv`) keeps the project's dependencies separate from the system's.
 
 ### macOS / Linux
 
@@ -50,87 +50,87 @@ py -3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-Une fois l'environnement activé, l'invite de commande commence par `(.venv)`. Pour en sortir, tapez `deactivate`.
+Once the environment is active, the prompt starts with `(.venv)`. To leave it, type `deactivate`.
 
-> L'environnement doit être activé **dans chaque nouveau terminal** avant de lancer l'application ou les tests.
+> The environment must be activated **in every new terminal** before running the application or the tests.
 
-## 3. Installer les dépendances
+## 3. Install the dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Le fichier `requirements.txt` contient des versions fixées :
+The `requirements.txt` file pins exact versions:
 
-| Paquet    | Rôle                                                 |
+| Package   | Purpose                                              |
 |-----------|------------------------------------------------------|
-| `fastapi` | Framework de l'API (installe aussi Pydantic)         |
-| `uvicorn` | Serveur qui exécute l'application                    |
-| `httpx2`  | Client HTTP utilisé par le `TestClient` des tests    |
-| `pytest`  | Lanceur de tests                                     |
+| `fastapi` | API framework (also installs Pydantic)               |
+| `uvicorn` | Server that runs the application                     |
+| `httpx2`  | HTTP client used by the tests' `TestClient`          |
+| `pytest`  | Test runner                                          |
 
-## 4. Lancer l'application
+## 4. Run the application
 
-### En développement (port 8000)
+### For development (port 8000)
 
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
 
-- `app.main:app` désigne l'objet `app` du fichier `app/main.py` ;
-- `--reload` redémarre le serveur automatiquement à chaque modification du code.
+- `app.main:app` refers to the `app` object in `app/main.py`;
+- `--reload` restarts the server automatically whenever the code changes.
 
-L'API répond sur <http://localhost:8000>. Arrêtez le serveur avec `Ctrl+C`.
+The API answers on <http://localhost:8000>. Stop the server with `Ctrl+C`.
 
-### En écoutant sur toutes les interfaces (préparation de l'atelier Docker)
+### Listening on all interfaces (preparing the Docker workshop)
 
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Par défaut, Uvicorn n'écoute que sur `127.0.0.1` : seule la machine locale peut le joindre. Avec `--host 0.0.0.0`, il accepte aussi les connexions venant d'autres machines ou d'un conteneur. C'est nécessaire dans un conteneur Docker. Sans cette option, l'API resterait inaccessible depuis l'extérieur du conteneur.
+By default, Uvicorn only listens on `127.0.0.1`, so only the local machine can reach it. With `--host 0.0.0.0`, it also accepts connections from other machines or from outside a container. This is required inside a Docker container: without this option, the API would be unreachable from outside the container.
 
-### Deux limites importantes de cette version
+### Two important limits of this version
 
-- **Les données disparaissent au redémarrage.** Les tâches sont stockées en mémoire. Elles sont donc perdues à chaque arrêt du serveur, et aussi à chaque redémarrage automatique provoqué par `--reload`.
-- **Un seul processus serveur.** Chaque processus a sa propre mémoire. N'utilisez pas l'option `--workers` : avec plusieurs processus, chacun aurait sa propre liste de tâches et les réponses deviendraient incohérentes. Une base de données, ajoutée lors d'un prochain atelier, lèvera ces deux limites.
+- **Data disappears on restart.** Tasks are stored in memory. They are lost every time the server stops, including the automatic restarts triggered by `--reload`.
+- **One server process only.** Each process has its own memory. Do not use the `--workers` option: with several processes, each one would have its own task list and responses would become inconsistent. A database, added in a later workshop, will remove both limits.
 
-## 5. Documentation interactive
+## 5. Interactive documentation
 
-Avec le serveur lancé, ouvrez dans un navigateur :
+With the server running, open in a browser:
 
-- **Swagger UI** : <http://localhost:8000/docs>. Cliquez sur une route, puis sur **Try it out** et **Execute** pour envoyer une vraie requête ;
-- **ReDoc** : <http://localhost:8000/redoc>, une documentation en lecture seule ;
-- **Schéma OpenAPI brut** : <http://localhost:8000/openapi.json>.
+- **Swagger UI**: <http://localhost:8000/docs>. Click a route, then **Try it out** and **Execute** to send a real request;
+- **ReDoc**: <http://localhost:8000/redoc>, a read-only documentation;
+- **Raw OpenAPI schema**: <http://localhost:8000/openapi.json>.
 
-## 6. Exemples de requêtes
+## 6. Request examples
 
-### Les routes
+### Routes
 
-| Méthode  | Route           | Rôle                                   | Succès |
-|----------|-----------------|----------------------------------------|--------|
-| `GET`    | `/health`       | Vérifier que l'API fonctionne          | 200    |
-| `GET`    | `/version`      | Nom et version de l'application        | 200    |
-| `GET`    | `/tasks`        | Lister les tâches                      | 200    |
-| `GET`    | `/tasks/{id}`   | Lire une tâche                         | 200    |
-| `POST`   | `/tasks`        | Créer une tâche                        | 201    |
-| `PATCH`  | `/tasks/{id}`   | Modifier le titre et/ou l'état         | 200    |
-| `DELETE` | `/tasks/{id}`   | Supprimer une tâche (réponse sans corps) | 204  |
+| Method   | Route           | Purpose                                | Success |
+|----------|-----------------|----------------------------------------|---------|
+| `GET`    | `/health`       | Check that the API is running          | 200     |
+| `GET`    | `/version`      | Application name and version           | 200     |
+| `GET`    | `/tasks`        | List the tasks                         | 200     |
+| `GET`    | `/tasks/{id}`   | Read a task                            | 200     |
+| `POST`   | `/tasks`        | Create a task                          | 201     |
+| `PATCH`  | `/tasks/{id}`   | Update the title and/or the status     | 200     |
+| `DELETE` | `/tasks/{id}`   | Delete a task (empty response body)    | 204     |
 
-Une tâche a la forme suivante :
+A task looks like this:
 
 ```json
-{"id": 1, "title": "Apprendre Git", "completed": false}
+{"id": 1, "title": "Learn Git", "completed": false}
 ```
 
-- `id` est attribué automatiquement (1, 2, 3…) ;
-- `title` est débarrassé des espaces de début et de fin, puis doit contenir entre 1 et 100 caractères ;
-- `completed` vaut `false` à la création.
+- `id` is assigned automatically (1, 2, 3…);
+- `title` is stripped of leading and trailing whitespace, then must contain between 1 and 100 characters;
+- `completed` is `false` on creation.
 
-### Avec curl (macOS / Linux)
+### With curl (macOS / Linux)
 
 ```bash
-# État de l'API
+# API status
 curl http://localhost:8000/health
 # {"status":"ok"}
 
@@ -138,78 +138,78 @@ curl http://localhost:8000/health
 curl http://localhost:8000/version
 # {"name":"TaskBoard","version":"1.0.0"}
 
-# Créer une tâche
+# Create a task
 curl -X POST http://localhost:8000/tasks \
   -H "Content-Type: application/json" \
-  -d '{"title": "Apprendre Git"}'
-# {"id":1,"title":"Apprendre Git","completed":false}
+  -d '{"title": "Learn Git"}'
+# {"id":1,"title":"Learn Git","completed":false}
 
-# Lister les tâches
+# List the tasks
 curl http://localhost:8000/tasks
-# [{"id":1,"title":"Apprendre Git","completed":false}]
+# [{"id":1,"title":"Learn Git","completed":false}]
 
-# Lire une tâche
+# Read a task
 curl http://localhost:8000/tasks/1
 
-# Marquer une tâche comme terminée
+# Mark a task as completed
 curl -X PATCH http://localhost:8000/tasks/1 \
   -H "Content-Type: application/json" \
   -d '{"completed": true}'
-# {"id":1,"title":"Apprendre Git","completed":true}
+# {"id":1,"title":"Learn Git","completed":true}
 
-# Changer le titre
+# Change the title
 curl -X PATCH http://localhost:8000/tasks/1 \
   -H "Content-Type: application/json" \
-  -d '{"title": "Maîtriser Git"}'
+  -d '{"title": "Master Git"}'
 
-# Supprimer une tâche (-i affiche le code HTTP : 204 No Content, sans corps)
+# Delete a task (-i shows the HTTP status: 204 No Content, no body)
 curl -i -X DELETE http://localhost:8000/tasks/1
 ```
 
-### Exemples d'erreurs
+### Error examples
 
 ```bash
-# Tâche inexistante → 404
+# Unknown task → 404
 curl -i http://localhost:8000/tasks/999
 # {"detail":"Task 999 not found"}
 
-# Titre composé uniquement d'espaces → 422
+# Title made only of spaces → 422
 curl -i -X POST http://localhost:8000/tasks \
   -H "Content-Type: application/json" \
   -d '{"title": "   "}'
 # {"detail":[{"type":"string_too_short","loc":["body","title"],
 #             "msg":"String should have at least 1 character", ...}]}
 
-# PATCH sans aucun champ → 422
+# PATCH without any field → 422
 curl -i -X PATCH http://localhost:8000/tasks/1 \
   -H "Content-Type: application/json" \
   -d '{}'
 # ... "msg":"Value error, Provide at least one field: title or completed" ...
 ```
 
-Codes HTTP utilisés :
+HTTP status codes used:
 
-| Code  | Signification                                                          |
+| Code  | Meaning                                                                |
 |-------|------------------------------------------------------------------------|
-| `200` | Succès                                                                 |
-| `201` | Tâche créée                                                            |
-| `204` | Tâche supprimée (pas de corps de réponse)                              |
-| `404` | La tâche demandée n'existe pas                                         |
-| `422` | Données invalides : titre vide ou trop long, identifiant non entier, JSON incorrect… |
+| `200` | Success                                                                |
+| `201` | Task created                                                           |
+| `204` | Task deleted (no response body)                                        |
+| `404` | The requested task does not exist                                      |
+| `422` | Invalid data: empty or too long title, non-integer id, malformed JSON… |
 
-### Sous Windows PowerShell
+### On Windows PowerShell
 
-Dans PowerShell, `curl` peut être un alias vers `Invoke-WebRequest`, qui n'accepte pas les mêmes options. Utilisez **`curl.exe`** :
+In PowerShell, `curl` may be an alias for `Invoke-WebRequest`, which does not accept the same options. Use **`curl.exe`**:
 
 ```powershell
 curl.exe http://localhost:8000/health
 ```
 
-Pour envoyer du JSON, le plus simple est d'utiliser `Invoke-RestMethod` :
+To send JSON, the simplest way is `Invoke-RestMethod`:
 
 ```powershell
 Invoke-RestMethod -Method Post -Uri http://localhost:8000/tasks `
-  -ContentType "application/json" -Body '{"title": "Apprendre Git"}'
+  -ContentType "application/json" -Body '{"title": "Learn Git"}'
 
 Invoke-RestMethod -Method Patch -Uri http://localhost:8000/tasks/1 `
   -ContentType "application/json" -Body '{"completed": true}'
@@ -217,45 +217,45 @@ Invoke-RestMethod -Method Patch -Uri http://localhost:8000/tasks/1 `
 Invoke-RestMethod -Method Delete -Uri http://localhost:8000/tasks/1
 ```
 
-Vous pouvez aussi passer par la documentation interactive (<http://localhost:8000/docs>), qui fonctionne de la même façon sur tous les systèmes.
+You can also use the interactive documentation (<http://localhost:8000/docs>), which works the same way on every system.
 
-## 7. Lancer les tests
+## 7. Run the tests
 
-Avec l'environnement virtuel activé, depuis le dossier `taskboard` :
+With the virtual environment active, from the project root folder:
 
 ```bash
-pytest          # résumé
-pytest -v       # détail de chaque test
+pytest          # summary
+pytest -v       # details of each test
 ```
 
-Résultat attendu : `19 passed`.
+Expected result: `19 passed`.
 
-Les tests (`tests/test_api.py`) utilisent le `TestClient` de FastAPI : ils appellent l'API **sans lancer de serveur**. Avant chaque test, une fixture vide le stockage. Chaque test part donc d'une liste vide, quel que soit l'ordre d'exécution.
+The tests (`tests/test_api.py`) use FastAPI's `TestClient`: they call the API **without starting a server**. Before each test, a fixture empties the storage, so every test starts from an empty list, whatever the execution order.
 
-Pour lancer un seul test :
+To run a single test:
 
 ```bash
 pytest tests/test_api.py::test_create_and_get_task
 ```
 
-## 8. Variables d'environnement
+## 8. Environment variables
 
-L'application fonctionne **sans aucune configuration** et sans fichier `.env`. Deux variables permettent de changer les valeurs par défaut :
+The application works **without any configuration** and without a `.env` file. Two variables let you change the default values:
 
-| Variable      | Valeur par défaut | Utilisation                                                |
-|---------------|-------------------|------------------------------------------------------------|
-| `APP_NAME`    | `TaskBoard`       | Nom renvoyé par `/version` et affiché dans `/docs`         |
-| `APP_VERSION` | `1.0.0`           | Version renvoyée par `/version` et affichée dans `/docs`   |
+| Variable      | Default value | Used for                                                   |
+|---------------|---------------|------------------------------------------------------------|
+| `APP_NAME`    | `TaskBoard`   | Name returned by `/version` and shown in `/docs`           |
+| `APP_VERSION` | `1.0.0`       | Version returned by `/version` and shown in `/docs`        |
 
-Elles sont lues **au démarrage** du serveur. Après une modification, redémarrez-le.
+They are read **when the server starts**. After changing them, restart the server.
 
-macOS / Linux, pour une seule commande :
+macOS / Linux, for a single command:
 
 ```bash
 APP_NAME="TaskBoard Demo" APP_VERSION=1.0.1 uvicorn app.main:app --port 8000
 ```
 
-Windows PowerShell, pour le terminal en cours :
+Windows PowerShell, for the current terminal:
 
 ```powershell
 $env:APP_NAME = "TaskBoard Demo"
@@ -263,71 +263,69 @@ $env:APP_VERSION = "1.0.1"
 uvicorn app.main:app --port 8000
 ```
 
-Vérification :
+Check:
 
 ```bash
 curl http://localhost:8000/version
 # {"name":"TaskBoard Demo","version":"1.0.1"}
 ```
 
-## 9. Structure du projet
+## 9. Project structure
 
 ```
-taskboard/
+taskBoard/
 ├── app/
-│   ├── __init__.py      fait de app/ un paquet Python
-│   ├── main.py          application FastAPI, configuration et routes
-│   ├── models.py        modèles de requête et de réponse (validation)
-│   └── store.py         stockage des tâches en mémoire
+│   ├── __init__.py      makes app/ a Python package
+│   ├── main.py          FastAPI application, configuration and routes
+│   ├── models.py        request and response models (validation)
+│   └── store.py         in-memory task storage
 ├── tests/
 │   ├── __init__.py
-│   └── test_api.py      tests de l'API
-├── pytest.ini           configuration de pytest
-├── requirements.txt     dépendances aux versions fixées
-├── .gitignore           fichiers à ne pas versionner (.venv, caches…)
+│   └── test_api.py      API tests
+├── pytest.ini           pytest configuration
+├── requirements.txt     pinned dependencies
+├── .gitignore           files not to version (.venv, caches…)
 └── README.md
 ```
 
-Les routes (`main.py`) ne savent pas comment les tâches sont stockées : elles passent uniquement par les méthodes de `store.py`. Pour utiliser une base de données plus tard, seul `store.py` devra être remplacé.
+The routes (`main.py`) do not know how tasks are stored: they only go through the methods of `store.py`. To use a database later, only `store.py` will need to be replaced.
 
-## 10. Problèmes fréquents
+## 10. Troubleshooting
 
-**`ModuleNotFoundError: No module named 'fastapi'`, ou `uvicorn` / `pytest` introuvable**
-L'environnement virtuel n'est pas activé, ou les dépendances ne sont pas installées. Activez-le (section 2), vérifiez la présence de `(.venv)` dans l'invite, puis relancez `pip install -r requirements.txt`.
+**`ModuleNotFoundError: No module named 'fastapi'`, or `uvicorn` / `pytest` not found**
+The virtual environment is not active, or the dependencies are not installed. Activate it (section 2), check that the prompt shows `(.venv)`, then run `pip install -r requirements.txt` again.
 
-**`ModuleNotFoundError: No module named 'app'`, ou `Could not import module "app.main"`**
-La commande est lancée depuis le mauvais dossier. Placez-vous dans le dossier `taskboard`, celui qui contient `app/` et ce README, puis relancez-la.
+**`ModuleNotFoundError: No module named 'app'`, or `Could not import module "app.main"`**
+The command is run from the wrong folder. Go to the project root folder, the one that contains `app/` and this README, then run it again.
 
-**`python3.12: command not found`, ou `py -3.12` ne trouve pas Python**
-Python 3.12 n'est pas installé, ou pas sous ce nom. Installez-le depuis <https://www.python.org/downloads/> (ou avec le gestionnaire de paquets de votre système). Vérifiez ensuite avec `python3.12 --version`. Si l'environnement virtuel a été créé avec une autre version, supprimez le dossier `.venv` et recréez-le.
+**`python3.12: command not found`, or `py -3.12` cannot find Python**
+Python 3.12 is not installed, or not under that name. Install it from <https://www.python.org/downloads/> (or with your system's package manager), then check with `python3.12 --version`. If the virtual environment was created with another version, delete the `.venv` folder and create it again.
 
-**Windows : « l'exécution de scripts est désactivée sur ce système » lors de l'activation**
-PowerShell bloque le script d'activation. Autorisez les scripts locaux pour votre utilisateur, puis relancez l'activation :
+**Windows: "running scripts is disabled on this system" when activating**
+PowerShell blocks the activation script. Allow local scripts for your user, then activate again:
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
 
-**`[Errno 48] Address already in use` (macOS) ou `[Errno 98]` (Linux) : le port 8000 est occupé**
-Un autre serveur, souvent un TaskBoard lancé dans un autre terminal, utilise déjà le port. Arrêtez-le avec `Ctrl+C` dans son terminal. Vous pouvez aussi lancer celui-ci sur un autre port avec `--port 8001`. Pour savoir quel processus occupe le port : `lsof -i :8000` (macOS/Linux) ou `netstat -ano | findstr :8000` (Windows).
+**`[Errno 48] Address already in use` (macOS) or `[Errno 98]` (Linux): port 8000 is busy**
+Another server, often a TaskBoard started in another terminal, is already using the port. Stop it with `Ctrl+C` in its terminal, or start this one on another port with `--port 8001`. To find which process uses the port: `lsof -i :8000` (macOS/Linux) or `netstat -ano | findstr :8000` (Windows).
 
-**Mes tâches ont disparu**
-C'est normal : le stockage est en mémoire. Les tâches sont perdues à chaque redémarrage, y compris lors d'un rechargement automatique avec `--reload` après une modification du code.
+**My tasks have disappeared**
+This is expected: storage is in memory. Tasks are lost on every restart, including the automatic reload triggered by `--reload` after a code change.
 
-**Les réponses sont incohérentes : une tâche créée est parfois introuvable**
-Le serveur tourne probablement avec plusieurs processus (`--workers 2` ou plus). Chaque processus a sa propre mémoire. Relancez le serveur sans `--workers`.
+**Responses are inconsistent: a created task is sometimes not found**
+The server is probably running with several processes (`--workers 2` or more). Each process has its own memory. Restart the server without `--workers`.
 
-**Réponse `422 Unprocessable Entity`**
-Les données envoyées sont invalides. Le champ `detail` de la réponse indique où se trouve l'erreur (`loc`) et pourquoi (`msg`). Causes fréquentes :
-- titre vide, composé uniquement d'espaces, ou de plus de 100 caractères ;
-- `PATCH` sans `title` ni `completed` ;
-- identifiant non entier (`/tasks/abc`) ;
-- JSON mal formé, ou en-tête `Content-Type: application/json` oublié.
+**`422 Unprocessable Entity` response**
+The data sent is invalid. The `detail` field of the response tells where the error is (`loc`) and why (`msg`). Common causes:
+- title empty, made only of spaces, or longer than 100 characters;
+- `PATCH` without `title` or `completed`;
+- non-integer id (`/tasks/abc`);
+- malformed JSON, or missing `Content-Type: application/json` header.
 
-Tous les messages d'erreur de l'API sont en anglais, comme le code.
+**`test_version` fails while the other tests pass**
+The `APP_VERSION` or `APP_NAME` variable is probably set in your terminal. The test expects the default values (`TaskBoard`, `1.0.0`). Remove them with `unset APP_VERSION APP_NAME` (macOS/Linux) or `Remove-Item Env:APP_VERSION, Env:APP_NAME` (PowerShell), then run `pytest` again.
 
-**`test_version` échoue alors que le reste passe**
-La variable `APP_VERSION` ou `APP_NAME` est sans doute définie dans votre terminal. Le test attend les valeurs par défaut (`TaskBoard`, `1.0.0`). Supprimez-la avec `unset APP_VERSION APP_NAME` (macOS/Linux) ou `Remove-Item Env:APP_VERSION, Env:APP_NAME` (PowerShell), puis relancez `pytest`.
-
-**`curl` sous PowerShell renvoie une erreur sur `-X` ou `-H`**
-Utilisez `curl.exe` au lieu de `curl`, ou `Invoke-RestMethod` (voir section 6).
+**`curl` in PowerShell fails on `-X` or `-H`**
+Use `curl.exe` instead of `curl`, or `Invoke-RestMethod` (see section 6).
