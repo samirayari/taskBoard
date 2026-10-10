@@ -20,8 +20,9 @@ The project is intentionally simple:
 6. [Request examples](#6-request-examples)
 7. [Run the tests](#7-run-the-tests)
 8. [Environment variables](#8-environment-variables)
-9. [Project structure](#9-project-structure)
-10. [Troubleshooting](#10-troubleshooting)
+9. [Commit messages](#9-commit-messages)
+10. [Project structure](#10-project-structure)
+11. [Troubleshooting](#11-troubleshooting)
 
 ## 1. Prerequisites
 
@@ -58,7 +59,10 @@ Once the environment is active, the prompt starts with `(.venv)`. To leave it, t
 
 ```bash
 pip install -r requirements.txt
+pre-commit install
 ```
+
+`pre-commit install` enables the Git hook that checks commit messages (see [section 9](#9-commit-messages)). Run it once after each `git clone`.
 
 The `requirements.txt` file pins exact versions:
 
@@ -68,6 +72,7 @@ The `requirements.txt` file pins exact versions:
 | `uvicorn` | Server that runs the application                     |
 | `httpx2`  | HTTP client used by the tests' `TestClient`          |
 | `pytest`  | Test runner                                          |
+| `pre-commit` | Runs the Git hook that checks commit messages     |
 
 ## 4. Run the application
 
@@ -270,7 +275,52 @@ curl http://localhost:8000/version
 # {"name":"TaskBoard Demo","version":"1.0.1"}
 ```
 
-## 9. Project structure
+## 9. Commit messages
+
+Commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) convention:
+
+```
+type(optional scope): short description
+```
+
+| Type       | Use it for                                          |
+|------------|-----------------------------------------------------|
+| `feat`     | A new feature                                       |
+| `fix`      | A bug fix                                           |
+| `docs`     | Documentation only                                  |
+| `style`    | Formatting, no code behavior change                 |
+| `refactor` | Code change that neither fixes a bug nor adds a feature |
+| `perf`     | Performance improvement                             |
+| `test`     | Adding or updating tests                            |
+| `build`    | Dependencies, packaging                             |
+| `ci`       | Continuous integration configuration                |
+| `chore`    | Other maintenance tasks                             |
+| `revert`   | Reverting a previous commit                         |
+
+Examples:
+
+```bash
+git commit -m "feat: add task search"
+git commit -m "fix(store): reset id counter"
+git commit -m "docs: explain the Docker setup"
+git commit -m "feat!: rename the /tasks route"   # "!" marks a breaking change
+```
+
+After `pre-commit install`, Git runs a check (`.pre-commit-config.yaml`) on every commit. A message that does not follow the convention is **rejected** and the commit is not created:
+
+```
+$ git commit -m "added stuff"
+Conventional Commit......................................................Failed
+[Bad commit message] >> added stuff
+...
+  - Expected value for type from: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test
+```
+
+Fix the message and commit again. Merge commits created by Git (`Merge branch ...`) are accepted as they are.
+
+> This check runs on your machine only. It can be skipped with `git commit --no-verify`, so it is a safety net, not a guarantee. A CI pipeline can enforce it for everyone.
+
+## 10. Project structure
 
 ```
 taskBoard/
@@ -283,6 +333,7 @@ taskBoard/
 │   ├── __init__.py
 │   └── test_api.py      API tests
 ├── pytest.ini           pytest configuration
+├── .pre-commit-config.yaml  Git hook checking commit messages
 ├── requirements.txt     pinned dependencies
 ├── .gitignore           files not to version (.venv, caches…)
 └── README.md
@@ -290,7 +341,7 @@ taskBoard/
 
 The routes (`main.py`) do not know how tasks are stored: they only go through the methods of `store.py`. To use a database later, only `store.py` will need to be replaced.
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 **`ModuleNotFoundError: No module named 'fastapi'`, or `uvicorn` / `pytest` not found**
 The virtual environment is not active, or the dependencies are not installed. Activate it (section 2), check that the prompt shows `(.venv)`, then run `pip install -r requirements.txt` again.
@@ -329,3 +380,15 @@ The `APP_VERSION` or `APP_NAME` variable is probably set in your terminal. The t
 
 **`curl` in PowerShell fails on `-X` or `-H`**
 Use `curl.exe` instead of `curl`, or `Invoke-RestMethod` (see section 6).
+
+**My commit is rejected with `Conventional Commit ... Failed`**
+The message does not follow the convention (section 9). Start it with an allowed type followed by `: `, for example `feat: add task search`. To fix the message you just typed, run `git commit --edit --file=.git/COMMIT_EDITMSG`.
+
+**`git revert` is rejected**
+Git's default revert message (`Revert "feat: ..."`) does not follow the convention. Run `git revert --no-commit <commit>`, then `git commit -m "revert: <what you undo>"`.
+
+**Bad commit messages are accepted: the check does not run**
+The hook is not enabled in this clone. Activate the virtual environment and run `pre-commit install`.
+
+**`pre-commit: command not found`**
+The virtual environment is not active, or the dependencies are not installed (see sections 2 and 3).

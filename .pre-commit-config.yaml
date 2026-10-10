@@ -1,0 +1,15 @@
+# Git hooks managed by pre-commit (https://pre-commit.com).
+# Enable them once per clone: pre-commit install
+default_install_hook_types: [commit-msg]
+
+repos:
+  # Rejects commit messages that do not follow Conventional Commits,
+  # e.g. "feat: add task search" or "fix(store): reset id counter".
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        # --verbose explains the expected format on failure (options must come
+        # before the list of allowed types).
+        args: [--verbose, feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
